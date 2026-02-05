@@ -18,14 +18,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ origin: "*", credentials: true }));
 
-const router=express.Router();
-router.use("/auth", authRoutes);
-router.use("/products", productRoutes);
-router.use("/orders", orderRoutes);
-router.use("/reviews", reviewRoutes);
-
-app.use("/.netlify/functions/api", router);
-
 const connectDB = async () => {
  if (mongoose.connections[0].readyState) {
         return;
@@ -38,9 +30,21 @@ const connectDB = async () => {
     }
 };
 
+const router=express.Router();
+router.use("/auth", authRoutes);
+router.use("/products", productRoutes);
+router.use("/orders", orderRoutes);
+router.use("/reviews", reviewRoutes);
+
+app.use("/.netlify/functions/api", router);
+
+
+
 export const handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
     
     await connectDB();
     return serverless(app)(event, context);
 };
+
+export { main as handler };
