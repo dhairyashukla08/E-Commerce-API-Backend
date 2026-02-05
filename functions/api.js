@@ -27,12 +27,20 @@ router.use("/reviews", reviewRoutes);
 app.use("/.netlify/functions/api", router);
 
 const connectDB = async () => {
-    if (mongoose.connection.readyState === 1) return;
-    await mongoose.connect(process.env.MONGO_URL);
+ if (mongoose.connections[0].readyState) {
+        return;
+    }
+    try {
+        await mongoose.connect(process.env.MONGO_URL);
+        console.log("Connected to MongoDB");
+    } catch (err) {
+        console.error("MongoDB connection error:", err);
+    }
 };
 
 export const handler = async (event, context) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+    
     await connectDB();
-    const serverlessHandler = serverless(app);
-    return await serverlessHandler(event, context);
+    return serverless(app)(event, context);
 };
